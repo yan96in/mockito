@@ -23,6 +23,16 @@ public interface Invocation extends InvocationOnMock, DescribedInvocation {
     boolean isVerified();
 
     /**
+     * Sequence numbers are used to determine the order of invocations for all mock objects.
+     * Useful to determine the order of invocations, used by verification in order.
+     * <p>
+     * The number is unique in the scope of JVM.
+     *
+     *
+     * Sequence number represent the order of invocations  of this invocation in reference to other invocations (even on
+     *
+     * Unique in the scope of JVM
+     *
      * @return the sequence number of the Invocation. Useful to determine the order of invocations.
      * Used by verification in order.
      */

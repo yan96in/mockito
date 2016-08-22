@@ -1,9 +1,9 @@
-package org.mockito.internal.invocation;
+package org.mockito.stubbing;
 
 import org.mockito.invocation.Invocation;
 
 /**
- * TODO 542 also javadoc + invocation exposes too much?
+ *
  */
 public interface Stubbing {
 
