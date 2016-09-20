@@ -1,9 +1,10 @@
 package org.mockito.internal.creation.bytebuddy;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class MockMethodDispatcher {
+public abstract class MockMethodDispatcher {
 
     private static final AtomicReference<MockMethodDispatcher> INSTANCE = new AtomicReference<MockMethodDispatcher>();
 
@@ -12,12 +13,12 @@ public class MockMethodDispatcher {
     }
 
     public static void set(MockMethodDispatcher dispatcher) {
-        if (!INSTANCE.compareAndSet(null, dispatcher)) {
-            throw new IllegalStateException("Mockito dispatcher already set");
+        if (INSTANCE.getAndSet(dispatcher) != null) {
+            System.err.println("Overriding previous dispatcher!"); // TODO
         }
     }
 
-    public Callable<?> handle(Object mock, Class<?> origin, String signature, Object[] arguments) throws Throwable {
-        return null;
-    }
+    public abstract Callable<?> handle(Object mock, Class<?> origin, String signature, Object[] arguments) throws Throwable;
+
+    public abstract Object handle(Object mock, Method origin, Object[] arguments, Object fallback) throws Throwable;
 }

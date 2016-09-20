@@ -2,19 +2,17 @@ package org.mockito.internal.creation.bytebuddy;
 
 import com.blogspot.mydailyjava.weaklockfree.WeakConcurrentMap;
 import net.bytebuddy.asm.Advice;
-import org.mockito.invocation.MockHandler;
+import net.bytebuddy.implementation.bind.annotation.*;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class MockMethodAdvice extends MockMethodDispatcher {
 
-    private final WeakConcurrentMap<Object, MockMethodInterceptor> mocks;
+    private final WeakConcurrentMap<Object, MockMethodInterceptor> interceptors;
 
-    public MockMethodAdvice(WeakConcurrentMap<Object, MockMethodInterceptor> mocks) {
-        this.mocks = mocks;
+    public MockMethodAdvice(WeakConcurrentMap<Object, MockMethodInterceptor> interceptors) {
+        this.interceptors = interceptors;
     }
 
     @Advice.OnMethodEnter(skipOn = Callable.class)
@@ -32,30 +30,51 @@ public class MockMethodAdvice extends MockMethodDispatcher {
         }
     }
 
-    private static Method find(Class<?> type, String signatue) {
-        for (Method method : type.getDeclaredMethods()) {
-            if (method.toString().endsWith(signatue)) {
-                return method;
-            }
-        }
-        throw new IllegalStateException();
+    @RuntimeType
+    public static Object interceptAbstract(@This Object mock,
+                                           @StubValue Object stubValue,
+                                           @Origin Method origin,
+                                           @AllArguments Object[] arguments) throws Throwable {
+        return MockMethodDispatcher.get().handle(mock, origin, arguments, stubValue);
     }
 
     @Override
     public Callable<?> handle(Object mock, Class<?> origin, String signature, Object[] arguments) throws Throwable {
-        MockMethodInterceptor interceptor = mocks.get(mock);
+        MockMethodInterceptor interceptor = interceptors.get(mock);
         if (interceptor == null) {
             return null;
         }
-        SuperMethodCall superMethodCall = new SuperMethodCall();
+        RecordingSuperMethod recordingSuperMethod = new RecordingSuperMethod();
         Object mocked = interceptor.doIntercept(mock,
-                find(origin, signature),
+                asMethod(origin, signature), // TODO: Should be cached!
                 arguments,
-                superMethodCall);
-        return superMethodCall.represent(mocked);
+                recordingSuperMethod);
+        return recordingSuperMethod.represent(mocked);
     }
 
-    static class SuperMethodCall implements InterceptedInvocation.SuperMethod {
+    private static Method asMethod(Class<?> type, String signatue) {
+        for (Method method : type.getDeclaredMethods()) {
+            if (method.toString().equals(signatue)) {
+                return method;
+            }
+        }
+        throw new IllegalStateException("Cannot find " + signatue + " on " + type);
+    }
+
+    @Override
+    public Object handle(Object mock, Method origin, Object[] arguments, Object fallback) throws Throwable {
+        MockMethodInterceptor interceptor = interceptors.get(mock);
+        if (interceptor == null) {
+            return fallback;
+        } else {
+            return interceptor.doIntercept(mock,
+                    origin,
+                    arguments,
+                    RecordingSuperMethod.IsIllegal.INSTANCE);
+        }
+    }
+
+    static class RecordingSuperMethod implements InterceptedInvocation.SuperMethod {
 
         private boolean invoked;
 
@@ -90,6 +109,32 @@ public class MockMethodAdvice extends MockMethodDispatcher {
         @Override
         public Object call() {
             return returned;
+        }
+    }
+
+    static class ForHashCode {
+
+        @Advice.OnMethodEnter(skipOn = Advice.DefaultValueOrTrue.class)
+        private static boolean enter() {
+            return true;
+        }
+
+        @Advice.OnMethodExit
+        private static void enter(@Advice.This Object self, @Advice.Return int hashCode) {
+            hashCode = System.identityHashCode(self);
+        }
+    }
+
+    static class ForEquals {
+
+        @Advice.OnMethodEnter(skipOn = Advice.DefaultValueOrTrue.class)
+        private static boolean enter() {
+            return true;
+        }
+
+        @Advice.OnMethodExit
+        private static void enter(@Advice.Return boolean equals, @Advice.This Object self, @Advice.Argument(0) Object other) {
+            equals = self == other;
         }
     }
 }

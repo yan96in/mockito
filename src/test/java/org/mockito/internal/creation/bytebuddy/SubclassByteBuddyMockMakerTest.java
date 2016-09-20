@@ -26,4 +26,9 @@ public class SubclassByteBuddyMockMakerTest extends AbstractByteBuddyMockMakerTe
     public SubclassByteBuddyMockMakerTest() {
         super(new SubclassByteBuddyMockMaker());
     }
+
+    @Override
+    protected Class<?> mockTypeOf(Class<?> type) {
+        return type.getSuperclass();
+    }
 }

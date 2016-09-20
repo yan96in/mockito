@@ -23,11 +23,13 @@ import static org.mockitoutil.ClassLoaders.coverageTool;
 
 public abstract class AbstractByteBuddyMockMakerTest {
 
-    private final MockMaker mockMaker;
+    protected final MockMaker mockMaker;
 
     public AbstractByteBuddyMockMakerTest(MockMaker mockMaker) {
         this.mockMaker = mockMaker;
     }
+
+    protected abstract Class<?> mockTypeOf(Class<?> type);
 
     @Test
     public void should_create_mock_from_interface() throws Exception {
@@ -42,7 +44,7 @@ public abstract class AbstractByteBuddyMockMakerTest {
     public void should_create_mock_from_class() throws Exception {
         ClassWithoutConstructor proxy = mockMaker.createMock(settingsFor(ClassWithoutConstructor.class), dummyH());
 
-        Class<?> superClass = proxy.getClass().getSuperclass();
+        Class<?> superClass = mockTypeOf(proxy.getClass());
         assertThat(superClass).isEqualTo(ClassWithoutConstructor.class);
     }
 
@@ -62,12 +64,11 @@ public abstract class AbstractByteBuddyMockMakerTest {
         SomeClass mockOne = mockMaker.createMock(settingsFor(SomeClass.class), dummyH());
         SomeClass mockTwo = mockMaker.createMock(settingsFor(SomeClass.class), dummyH());
 
-        MockAccess interceptorOne = (MockAccess) mockOne;
-        MockAccess interceptorTwo = (MockAccess) mockTwo;
+        MockHandler handlerOne = mockMaker.getHandler(mockOne);
+        MockHandler handlerTwo = mockMaker.getHandler(mockTwo);
 
 
-        assertThat(interceptorOne.getMockitoInterceptor())
-                .isNotSameAs(interceptorTwo.getMockitoInterceptor());
+        assertThat(handlerOne).isNotSameAs(handlerTwo);
     }
 
     @Test

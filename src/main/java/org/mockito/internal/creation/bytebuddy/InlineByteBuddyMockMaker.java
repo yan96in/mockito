@@ -52,7 +52,7 @@ public class InlineByteBuddyMockMaker implements MockMaker {
 
     @Override
     public <T> T createMock(MockCreationSettings<T> settings, MockHandler handler) {
-        Class<? extends T> type = bytecodeGenerator.generateMockClass(mockWithFeaturesFrom(settings));
+        Class<? extends T> type = bytecodeGenerator.mockClass(mockWithFeaturesFrom(settings));
 
         Instantiator instantiator = Plugins.getInstantiatorProvider().getInstantiator(settings);
         try {

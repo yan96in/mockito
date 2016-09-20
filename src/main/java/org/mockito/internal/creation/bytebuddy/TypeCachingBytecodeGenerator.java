@@ -17,23 +17,24 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.mockito.internal.util.StringJoiner.join;
 
-class TypeCachingBytecodeGenerator extends ReferenceQueue<ClassLoader> {
+class TypeCachingBytecodeGenerator extends ReferenceQueue<ClassLoader> implements BytecodeGenerator {
 
     private static final ClassLoader BOOT_LOADER = new URLClassLoader(new URL[0], null);
 
     final ConcurrentMap<Key, CachedBytecodeGenerator> avoidingClassLeakageCache = new ConcurrentHashMap<Key, CachedBytecodeGenerator>();
 
-    private final MockEngine mockEngine;
+    private final BytecodeGenerator bytecodeGenerator;
 
     private final boolean weak;
 
-    public TypeCachingBytecodeGenerator(MockEngine mockEngine, boolean weak) {
-        this.mockEngine = mockEngine;
+    public TypeCachingBytecodeGenerator(BytecodeGenerator bytecodeGenerator, boolean weak) {
+        this.bytecodeGenerator = bytecodeGenerator;
         this.weak = weak;
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Class<T> get(MockFeatures<T> params) {
+    @Override
+    public <T> Class<T> mockClass(MockFeatures<T> params) {
         cleanUpCachesForObsoleteClassLoaders();
         return (Class<T>) mockCachePerClassLoaderOf(params.mockedType.getClassLoader()).getOrGenerateMockClass(params);
     }
@@ -50,7 +51,7 @@ class TypeCachingBytecodeGenerator extends ReferenceQueue<ClassLoader> {
         classLoader = classLoader == null ? BOOT_LOADER : classLoader;
         CachedBytecodeGenerator generator = avoidingClassLeakageCache.get(new LookupKey(classLoader));
         if (generator == null) {
-            CachedBytecodeGenerator newGenerator = new CachedBytecodeGenerator(mockEngine, weak);
+            CachedBytecodeGenerator newGenerator = new CachedBytecodeGenerator(bytecodeGenerator, weak);
             generator = avoidingClassLeakageCache.putIfAbsent(new WeakKey(classLoader, this), newGenerator);
             if (generator == null) {
                 generator = newGenerator;
@@ -63,12 +64,12 @@ class TypeCachingBytecodeGenerator extends ReferenceQueue<ClassLoader> {
 
         private ConcurrentHashMap<MockKey, Reference<Class<?>>> generatedClassCache = new ConcurrentHashMap<MockKey, Reference<Class<?>>>();
 
-        private MockEngine mockEngine;
+        private BytecodeGenerator bytecodeGenerator;
 
         private final boolean weak;
 
-        private CachedBytecodeGenerator(MockEngine mockEngine, boolean weak) {
-            this.mockEngine = mockEngine;
+        private CachedBytecodeGenerator(BytecodeGenerator bytecodeGenerator, boolean weak) {
+            this.bytecodeGenerator = bytecodeGenerator;
             this.weak = weak;
         }
 
@@ -98,7 +99,7 @@ class TypeCachingBytecodeGenerator extends ReferenceQueue<ClassLoader> {
 
         private <T> Class<? extends T> generate(MockFeatures<T> mockFeatures) {
             try {
-                return mockEngine.generateMockClass(mockFeatures);
+                return bytecodeGenerator.mockClass(mockFeatures);
             } catch (Exception bytecodeGenerationFailed) {
                 throw prettifyFailure(mockFeatures, bytecodeGenerationFailed);
             }

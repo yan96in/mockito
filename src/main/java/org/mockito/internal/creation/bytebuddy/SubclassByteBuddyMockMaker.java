@@ -16,7 +16,7 @@ import static org.mockito.internal.util.StringJoiner.join;
 
 public class SubclassByteBuddyMockMaker implements MockMaker {
 
-    private final TypeCachingBytecodeGenerator cachingMockBytecodeGenerator;
+    private final BytecodeGenerator cachingMockBytecodeGenerator;
 
     public SubclassByteBuddyMockMaker() {
         cachingMockBytecodeGenerator = new TypeCachingBytecodeGenerator(new SubclassBytecodeGenerator(), false);
@@ -24,7 +24,7 @@ public class SubclassByteBuddyMockMaker implements MockMaker {
 
     @Override
     public <T> T createMock(MockCreationSettings<T> settings, MockHandler handler) {
-        Class<T> mockedProxyType = createProxyClass(mockWithFeaturesFrom(settings));
+        Class<? extends T> mockedProxyType = createProxyClass(mockWithFeaturesFrom(settings));
 
         Instantiator instantiator = Plugins.getInstantiatorProvider().getInstantiator(settings);
         T mockInstance = null;
@@ -50,8 +50,8 @@ public class SubclassByteBuddyMockMaker implements MockMaker {
         }
     }
 
-    <T> Class<T> createProxyClass(MockFeatures<T> mockFeatures) {
-        return cachingMockBytecodeGenerator.get(mockFeatures);
+    <T> Class<? extends T> createProxyClass(MockFeatures<T> mockFeatures) {
+        return cachingMockBytecodeGenerator.mockClass(mockFeatures);
     }
 
 

@@ -9,6 +9,7 @@ import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.dynamic.loading.MultipleParentClassLoader;
 import net.bytebuddy.dynamic.scaffold.TypeValidation;
 import net.bytebuddy.implementation.FieldAccessor;
+import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.attribute.MethodAttributeAppender;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -24,29 +25,39 @@ import static net.bytebuddy.description.modifier.Visibility.PRIVATE;
 import static net.bytebuddy.implementation.MethodDelegation.to;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
-class SubclassBytecodeGenerator implements MockEngine {
+class SubclassBytecodeGenerator implements BytecodeGenerator {
 
     private final ByteBuddy byteBuddy;
     private final Random random;
+    private final boolean shallow;
+    private final Implementation implementation;
 
     public SubclassBytecodeGenerator() {
+        this(false, MethodDelegation.to(DispatcherDefaultingToRealMethod.class));
+    }
+
+    public SubclassBytecodeGenerator(boolean shallow, Implementation implementation) {
         byteBuddy = new ByteBuddy().with(TypeValidation.DISABLED);
         random = new Random();
+        this.shallow = shallow;
+        this.implementation = implementation;
     }
 
     @Override
-    public <T> Class<? extends T> generateMockClass(MockFeatures<T> features) {
+    public <T> Class<? extends T> mockClass(MockFeatures<T> features) {
         DynamicType.Builder<T> builder =
                 byteBuddy.subclass(features.mockedType)
                          .name(nameFor(features.mockedType))
                          .ignoreAlso(isGroovyMethod())
                          .annotateType(features.mockedType.getAnnotations())
                          .implement(new ArrayList<Type>(features.interfaces))
-                         .method(any())
-                           .intercept(MethodDelegation.to(DispatcherDefaultingToRealMethod.class))
+                         .method(shallow ? isAbstract().or(isNative()) : any())
+                           .intercept(implementation)
                            .transform(Transformer.ForMethod.withModifiers(SynchronizationState.PLAIN))
                            .attribute(MethodAttributeAppender.ForInstrumentedMethod.INCLUDING_RECEIVER)
-                         .serialVersionUid(42L)
+                         .serialVersionUid(42L);
+        if (!shallow) {
+            builder = builder
                          .defineField("mockitoInterceptor", MockMethodInterceptor.class, PRIVATE)
                          .implement(MockAccess.class)
                            .intercept(FieldAccessor.ofBeanProperty())
@@ -54,6 +65,7 @@ class SubclassBytecodeGenerator implements MockEngine {
                            .intercept(to(MockMethodInterceptor.ForHashCode.class))
                          .method(isEquals())
                            .intercept(to(MockMethodInterceptor.ForEquals.class));
+        }
         if (features.crossClassLoaderSerializable) {
             builder = builder.implement(CrossClassLoaderSerializableMock.class)
                              .intercept(to(MockMethodInterceptor.ForWriteReplace.class));
