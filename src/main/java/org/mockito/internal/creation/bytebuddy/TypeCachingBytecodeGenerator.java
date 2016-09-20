@@ -17,17 +17,18 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.mockito.internal.util.StringJoiner.join;
 
-class CachingMockBytecodeGenerator extends ReferenceQueue<ClassLoader> {
+class TypeCachingBytecodeGenerator extends ReferenceQueue<ClassLoader> {
 
     private static final ClassLoader BOOT_LOADER = new URLClassLoader(new URL[0], null);
 
     final ConcurrentMap<Key, CachedBytecodeGenerator> avoidingClassLeakageCache = new ConcurrentHashMap<Key, CachedBytecodeGenerator>();
 
-    private final MockBytecodeGenerator mockBytecodeGenerator = new MockBytecodeGenerator();
+    private final MockEngine mockEngine;
 
     private final boolean weak;
 
-    public CachingMockBytecodeGenerator(boolean weak) {
+    public TypeCachingBytecodeGenerator(MockEngine mockEngine, boolean weak) {
+        this.mockEngine = mockEngine;
         this.weak = weak;
     }
 
@@ -49,7 +50,7 @@ class CachingMockBytecodeGenerator extends ReferenceQueue<ClassLoader> {
         classLoader = classLoader == null ? BOOT_LOADER : classLoader;
         CachedBytecodeGenerator generator = avoidingClassLeakageCache.get(new LookupKey(classLoader));
         if (generator == null) {
-            CachedBytecodeGenerator newGenerator = new CachedBytecodeGenerator(mockBytecodeGenerator, weak);
+            CachedBytecodeGenerator newGenerator = new CachedBytecodeGenerator(mockEngine, weak);
             generator = avoidingClassLeakageCache.putIfAbsent(new WeakKey(classLoader, this), newGenerator);
             if (generator == null) {
                 generator = newGenerator;
@@ -62,17 +63,18 @@ class CachingMockBytecodeGenerator extends ReferenceQueue<ClassLoader> {
 
         private ConcurrentHashMap<MockKey, Reference<Class<?>>> generatedClassCache = new ConcurrentHashMap<MockKey, Reference<Class<?>>>();
 
-        private final MockBytecodeGenerator generator;
+        private MockEngine mockEngine;
+
         private final boolean weak;
 
-        private CachedBytecodeGenerator(MockBytecodeGenerator generator, boolean weak) {
-            this.generator = generator;
+        private CachedBytecodeGenerator(MockEngine mockEngine, boolean weak) {
+            this.mockEngine = mockEngine;
             this.weak = weak;
         }
 
         private Class<?> getMockClass(MockKey<?> mockKey) {
             Reference<Class<?>> classReference = generatedClassCache.get(mockKey);
-            if(classReference != null) {
+            if (classReference != null) {
                 return classReference.get();
             } else {
                 return null;
@@ -85,7 +87,7 @@ class CachingMockBytecodeGenerator extends ReferenceQueue<ClassLoader> {
             if (generatedMockClass == null) {
                 synchronized (features.mockedType) {
                     generatedMockClass = getMockClass(mockKey);
-                    if(generatedMockClass == null) {
+                    if (generatedMockClass == null) {
                         generatedMockClass = generate(features);
                         generatedClassCache.put(mockKey, weak ? new WeakReference<Class<?>>(generatedMockClass) : new SoftReference<Class<?>>(generatedMockClass));
                     }
@@ -96,7 +98,7 @@ class CachingMockBytecodeGenerator extends ReferenceQueue<ClassLoader> {
 
         private <T> Class<? extends T> generate(MockFeatures<T> mockFeatures) {
             try {
-                return generator.generateMockClass(mockFeatures);
+                return mockEngine.generateMockClass(mockFeatures);
             } catch (Exception bytecodeGenerationFailed) {
                 throw prettifyFailure(mockFeatures, bytecodeGenerationFailed);
             }
@@ -123,7 +125,9 @@ class CachingMockBytecodeGenerator extends ReferenceQueue<ClassLoader> {
 
         // should be stored as a weak reference
         private static class MockKey<T> {
+
             private final String mockedType;
+
             private final Set<String> types;
 
             private MockKey(Class<T> mockedType, Set<Class<?>> interfaces) {

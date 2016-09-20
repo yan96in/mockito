@@ -14,12 +14,12 @@ import java.lang.reflect.Modifier;
 
 import static org.mockito.internal.util.StringJoiner.join;
 
-public class ByteBuddyMockMaker implements MockMaker {
+public class SubclassByteBuddyMockMaker implements MockMaker {
 
-    private final CachingMockBytecodeGenerator cachingMockBytecodeGenerator;
+    private final TypeCachingBytecodeGenerator cachingMockBytecodeGenerator;
 
-    public ByteBuddyMockMaker() {
-        cachingMockBytecodeGenerator = new CachingMockBytecodeGenerator(false);
+    public SubclassByteBuddyMockMaker() {
+        cachingMockBytecodeGenerator = new TypeCachingBytecodeGenerator(new SubclassBytecodeGenerator(), false);
     }
 
     @Override
@@ -55,7 +55,7 @@ public class ByteBuddyMockMaker implements MockMaker {
     }
 
 
-    private <T> MockFeatures<T> mockWithFeaturesFrom(MockCreationSettings<T> settings) {
+    private static <T> MockFeatures<T> mockWithFeaturesFrom(MockCreationSettings<T> settings) {
         return MockFeatures.withMockFeatures(
                 settings.getTypeToMock(),
                 settings.getExtraInterfaces(),
@@ -63,7 +63,7 @@ public class ByteBuddyMockMaker implements MockMaker {
         );
     }
 
-    private <T> T ensureMockIsAssignableToMockedType(MockCreationSettings<T> settings, T mock) {
+    private static <T> T ensureMockIsAssignableToMockedType(MockCreationSettings<T> settings, T mock) {
         // Force explicit cast to mocked type here, instead of
         // relying on the JVM to implicitly cast on the client call site.
         // This allows us to catch earlier the ClassCastException earlier

@@ -24,16 +24,17 @@ import static net.bytebuddy.description.modifier.Visibility.PRIVATE;
 import static net.bytebuddy.implementation.MethodDelegation.to;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
-class MockBytecodeGenerator {
+class SubclassBytecodeGenerator implements MockEngine {
 
     private final ByteBuddy byteBuddy;
     private final Random random;
 
-    public MockBytecodeGenerator() {
+    public SubclassBytecodeGenerator() {
         byteBuddy = new ByteBuddy().with(TypeValidation.DISABLED);
         random = new Random();
     }
 
+    @Override
     public <T> Class<? extends T> generateMockClass(MockFeatures<T> features) {
         DynamicType.Builder<T> builder =
                 byteBuddy.subclass(features.mockedType)

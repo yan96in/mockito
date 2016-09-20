@@ -21,9 +21,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockitoutil.ClassLoaders.coverageTool;
 
-public class ByteBuddyMockMakerTest {
+public abstract class AbstractByteBuddyMockMakerTest {
 
-    MockMaker mockMaker = new ByteBuddyMockMaker();
+    private final MockMaker mockMaker;
+
+    public AbstractByteBuddyMockMakerTest(MockMaker mockMaker) {
+        this.mockMaker = mockMaker;
+    }
 
     @Test
     public void should_create_mock_from_interface() throws Exception {

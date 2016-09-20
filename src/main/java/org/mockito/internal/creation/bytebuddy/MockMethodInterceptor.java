@@ -18,7 +18,7 @@ public class MockMethodInterceptor implements Serializable {
 
     private static final long serialVersionUID = 7152947254057253027L;
 
-    private final InternalMockHandler handler;
+    final InternalMockHandler handler;
     private final MockCreationSettings mockCreationSettings;
 
     private final ByteBuddyCrossClassLoaderSerializationSupport serializationSupport;
@@ -29,7 +29,7 @@ public class MockMethodInterceptor implements Serializable {
         serializationSupport = new ByteBuddyCrossClassLoaderSerializationSupport();
     }
 
-    private Object doIntercept(Object mock,
+    Object doIntercept(Object mock,
                                Method invokedMethod,
                                Object[] arguments,
                                InterceptedInvocation.SuperMethod superMethod) throws Throwable {

@@ -29,7 +29,7 @@ public class CachingMockBytecodeGeneratorTest {
                 .withClassDefinition("foo.Bar", makeMarkerInterface("foo.Bar"))
                 .build();
 
-        CachingMockBytecodeGenerator cachingMockBytecodeGenerator = new CachingMockBytecodeGenerator(true);
+        TypeCachingBytecodeGenerator cachingMockBytecodeGenerator = new TypeCachingBytecodeGenerator(new SubclassBytecodeGenerator(), true);
         Class<?> the_mock_type = cachingMockBytecodeGenerator.get(withMockFeatures(
                 classloader_with_life_shorter_than_cache.loadClass("foo.Bar"),
                 Collections.<Class<?>>emptySet(),
@@ -58,7 +58,7 @@ public class CachingMockBytecodeGeneratorTest {
                 .withClassDefinition("foo.Bar", makeMarkerInterface("foo.Bar"))
                 .build();
 
-        CachingMockBytecodeGenerator cachingMockBytecodeGenerator = new CachingMockBytecodeGenerator(true);
+        TypeCachingBytecodeGenerator cachingMockBytecodeGenerator = new TypeCachingBytecodeGenerator(new SubclassBytecodeGenerator(), true);
         Class<?> the_mock_type = cachingMockBytecodeGenerator.get(withMockFeatures(
                         classloader_with_life_shorter_than_cache.loadClass("foo.Bar"),
                         Collections.<Class<?>>emptySet(),
