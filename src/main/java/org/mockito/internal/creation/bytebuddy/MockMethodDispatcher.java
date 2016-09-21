@@ -17,7 +17,7 @@ public abstract class MockMethodDispatcher {
         INSTANCE.putIfAbsent(identifier, dispatcher);
     }
 
-    public abstract Callable<?> handle(Object instance, Class<?> origin, String signature, Object[] arguments) throws Throwable;
+    public abstract Callable<?> handle(Object instance, Method origin, Object[] arguments) throws Throwable;
 
     public abstract Object handle(Object instance, Method origin, Object[] arguments, Object fallback) throws Throwable;
 

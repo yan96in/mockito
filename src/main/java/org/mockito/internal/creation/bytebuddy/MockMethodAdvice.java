@@ -17,17 +17,16 @@ public class MockMethodAdvice extends MockMethodDispatcher {
         this.interceptors = interceptors;
     }
 
-    @Advice.OnMethodEnter(skipOn = Callable.class)
+    @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
     private static Callable<?> enter(@Identifier String identifier,
                                      @Advice.This Object mock,
-                                     @Advice.Origin Class<?> origin,
-                                     @Advice.Origin String signature,
+                                     @Advice.Origin Method origin,
                                      @Advice.BoxedArguments Object[] arguments) throws Throwable {
         MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier);
         if (dispatcher == null) {
             return null;
         } else {
-            return dispatcher.handle(mock, origin, signature, arguments);
+            return dispatcher.handle(mock, origin, arguments);
         }
     }
 
@@ -69,26 +68,17 @@ public class MockMethodAdvice extends MockMethodDispatcher {
     }
 
     @Override
-    public Callable<?> handle(Object instance, Class<?> origin, String signature, Object[] arguments) throws Throwable {
+    public Callable<?> handle(Object instance, Method method, Object[] arguments) throws Throwable {
         MockMethodInterceptor interceptor = interceptors.get(instance);
         if (interceptor == null) {
             return null;
         }
         RecordingSuperMethod recordingSuperMethod = new RecordingSuperMethod();
         Object mocked = interceptor.doIntercept(instance,
-                asMethod(origin, signature), // TODO: Better lookup, should be cached!
+                method,
                 arguments,
                 recordingSuperMethod);
         return recordingSuperMethod.represent(mocked);
-    }
-
-    private static Method asMethod(Class<?> type, String signatue) {
-        for (Method method : type.getDeclaredMethods()) {
-            if (method.toString().equals(signatue)) {
-                return method;
-            }
-        }
-        throw new IllegalStateException("Cannot find " + signatue + " on " + type);
     }
 
     @Override
@@ -149,7 +139,7 @@ public class MockMethodAdvice extends MockMethodDispatcher {
 
     static class ForHashCode {
 
-        @Advice.OnMethodEnter(skipOn = Advice.DefaultValueOrTrue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         private static boolean enter(@Identifier String id,
                                      @Advice.This Object self) {
             MockMethodDispatcher dispatcher = MockMethodDispatcher.get(id);
@@ -168,7 +158,7 @@ public class MockMethodAdvice extends MockMethodDispatcher {
 
     static class ForEquals {
 
-        @Advice.OnMethodEnter(skipOn = Advice.DefaultValueOrTrue.class)
+        @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         private static boolean enter(@Identifier String identifier,
                                      @Advice.This Object self) {
             MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier);
