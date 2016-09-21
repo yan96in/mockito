@@ -9,14 +9,12 @@ import org.mockito.internal.configuration.plugins.Plugins;
 import org.mockito.internal.creation.instance.Instantiator;
 import org.mockito.invocation.MockHandler;
 import org.mockito.mock.MockCreationSettings;
-import org.mockito.mock.SerializableMode;
 import org.mockito.plugins.MockMaker;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
-import java.lang.reflect.Modifier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -64,7 +62,12 @@ public class InlineByteBuddyMockMaker implements MockMaker {
         Instantiator instantiator = Plugins.getInstantiatorProvider().getInstantiator(settings);
         try {
             T instance = instantiator.newInstance(type);
-            mocks.put(instance, new MockMethodInterceptor(asInternalMockHandler(handler), settings));
+            MockMethodInterceptor mockMethodInterceptor = new MockMethodInterceptor(asInternalMockHandler(handler), settings);
+            mocks.put(instance, mockMethodInterceptor);
+            if (instance instanceof MockMethodInterceptor.MockAccess) {
+                MockMethodInterceptor.MockAccess mockAccess = (MockMethodInterceptor.MockAccess) instance;
+                mockAccess.setMockitoInterceptor(mockMethodInterceptor);
+            }
             return instance;
         } catch (org.mockito.internal.creation.instance.InstantiationException e) {
             throw new MockitoException("Unable to create mock instance of type '" + type.getSimpleName() + "'", e);
@@ -92,11 +95,16 @@ public class InlineByteBuddyMockMaker implements MockMaker {
 
     @Override
     public MockHandler getHandler(Object mock) {
-        MockMethodInterceptor interceptor = mocks.get(mock);
-        if (interceptor == null) {
-            return null;
+        if (mock instanceof MockMethodInterceptor.MockAccess) { // In case of serialization, this handler needs to be checked first.
+            MockMethodInterceptor.MockAccess mockAccess = (MockMethodInterceptor.MockAccess) mock;
+            return mockAccess.getMockitoInterceptor().getMockHandler();
         } else {
-            return interceptor.handler;
+            MockMethodInterceptor interceptor = mocks.get(mock);
+            if (interceptor == null) {
+                return null;
+            } else {
+                return interceptor.handler;
+            }
         }
     }
 

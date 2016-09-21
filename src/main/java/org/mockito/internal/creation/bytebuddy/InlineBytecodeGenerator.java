@@ -59,9 +59,7 @@ public class InlineBytecodeGenerator implements BytecodeGenerator, ClassFileTran
         mocked = new WeakConcurrentSet<Class<?>>(WeakConcurrentSet.Cleaner.INLINE);
         advice = new MockMethodAdvice(mocks);
         identifier = RandomString.make();
-        subclassEngine = new TypeCachingBytecodeGenerator(new SubclassBytecodeGenerator(true, MethodDelegation.to(MockMethodAdvice.class)
-                .appendParameterBinder(TargetMethodAnnotationDrivenBinder.ParameterBinder.ForFixedValue.OfConstant.of(MockMethodAdvice.Identifier.class, identifier))
-                .filter(nameStartsWith("intercept"))), false);
+        subclassEngine = new TypeCachingBytecodeGenerator(new SubclassBytecodeGenerator(), false);
         MockMethodDispatcher.set(identifier, advice);
         instrumentation.addTransformer(this, true);
     }

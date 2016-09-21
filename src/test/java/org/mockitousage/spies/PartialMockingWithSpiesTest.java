@@ -77,7 +77,7 @@ public class PartialMockingWithSpiesTest extends TestBase {
         assertEquals("Default name", name);
     }
     
-    @Test
+    @Test ///TODO: Rafael
     public void shouldAllowStubbingOfMethodsThatDelegateToOtherMethods() {
         // when
         when(spy.getName()).thenReturn("foo");

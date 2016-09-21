@@ -31,18 +31,10 @@ class SubclassBytecodeGenerator implements BytecodeGenerator {
 
     private final ByteBuddy byteBuddy;
     private final Random random;
-    private final boolean shallow;
-    private final Implementation implementation;
 
     public SubclassBytecodeGenerator() {
-        this(false, MethodDelegation.to(DispatcherDefaultingToRealMethod.class));
-    }
-
-    public SubclassBytecodeGenerator(boolean shallow, Implementation implementation) {
         byteBuddy = new ByteBuddy().with(TypeValidation.DISABLED);
         random = new Random();
-        this.shallow = shallow;
-        this.implementation = implementation;
     }
 
     @Override
@@ -56,23 +48,18 @@ class SubclassBytecodeGenerator implements BytecodeGenerator {
                            .define("type", features.mockedType)
                            .build())
                          .implement(new ArrayList<Type>(features.interfaces))
-                         .method(shallow
-                                 ? isAbstract().or(isNative()).and(not(isHashCode().or(isEquals())))
-                                 : any())
-                           .intercept(implementation)
+                         .method(any())
+                           .intercept(MethodDelegation.to(DispatcherDefaultingToRealMethod.class))
                            .transform(Transformer.ForMethod.withModifiers(SynchronizationState.PLAIN))
                            .attribute(MethodAttributeAppender.ForInstrumentedMethod.INCLUDING_RECEIVER)
-                         .serialVersionUid(42L);
-        if (!shallow) {
-            builder = builder
-                         .defineField("mockitoInterceptor", MockMethodInterceptor.class, PRIVATE)
-                         .implement(MockAccess.class)
-                           .intercept(FieldAccessor.ofBeanProperty())
                          .method(isHashCode())
                            .intercept(to(MockMethodInterceptor.ForHashCode.class))
                          .method(isEquals())
-                           .intercept(to(MockMethodInterceptor.ForEquals.class));
-        }
+                           .intercept(to(MockMethodInterceptor.ForEquals.class))
+                         .serialVersionUid(42L)
+                         .defineField("mockitoInterceptor", MockMethodInterceptor.class, PRIVATE)
+                         .implement(MockAccess.class)
+                           .intercept(FieldAccessor.ofBeanProperty());
         if (features.serializableMode == SerializableMode.ACROSS_CLASSLOADERS) {
             builder = builder.implement(CrossClassLoaderSerializableMock.class)
                              .intercept(to(MockMethodInterceptor.ForWriteReplace.class));

@@ -68,7 +68,6 @@ public class SpyingOnInterfacesTest extends TestBase {
 
         Class<?> type = new ByteBuddy()
                 .makeInterface()
-                .modifiers(Visibility.PUBLIC, TypeManifestation.INTERFACE) // Can be removed in the future, bug in Byte Buddy to not make public by default
                 .defineMethod("foo", String.class, Visibility.PUBLIC)
                 .intercept(FixedValue.value("bar"))
                 .make()
@@ -84,13 +83,12 @@ public class SpyingOnInterfacesTest extends TestBase {
         type.getMethod("foo").invoke(verify(object));
     }
 
-    @Test
+    @Test ///TODO: Rafael
     public void shouldAllowSpyingOnDefaultMethod() throws Exception {
         assumeTrue(ClassFileVersion.ofThisVm().isAtLeast(ClassFileVersion.JAVA_V8));
 
         Class<?> iFace = new ByteBuddy()
                 .makeInterface()
-                .modifiers(Visibility.PUBLIC, TypeManifestation.INTERFACE) // Can be removed in the future, bug in Byte Buddy to not make public by default
                 .defineMethod("foo", String.class, Visibility.PUBLIC)
                 .intercept(FixedValue.value("bar"))
                 .make()
@@ -106,8 +104,8 @@ public class SpyingOnInterfacesTest extends TestBase {
         Object object = spy(impl.newInstance());
 
         //when
-        Assertions.assertThat(impl.getMethod("foo").invoke(object)).isEqualTo((Object) "bar");
+        Assertions.assertThat(iFace.getMethod("foo").invoke(object)).isEqualTo((Object) "bar");
         //then
-        impl.getMethod("foo").invoke(verify(object));
+        iFace.getMethod("foo").invoke(verify(object));
     }
 }

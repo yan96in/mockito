@@ -2,7 +2,6 @@ package org.mockito.internal.creation.bytebuddy;
 
 import com.blogspot.mydailyjava.weaklockfree.WeakConcurrentMap;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.implementation.bind.annotation.*;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -35,35 +34,6 @@ public class MockMethodAdvice extends MockMethodDispatcher {
                              @Advice.Enter Callable<?> mocked) throws Throwable {
         if (mocked != null) {
             returned = mocked.call();
-        }
-    }
-
-    @RuntimeType
-    public static Object intercept(@Identifier String identifier,
-                                   @This Object mock,
-                                   @StubValue Object stubValue,
-                                   @SuperCall Callable<?> superCall,
-                                   @Origin Method origin,
-                                   @AllArguments Object[] arguments) throws Throwable {
-        MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier, mock);
-        if (dispatcher == null) {
-            return stubValue;
-        } else {
-            return dispatcher.handle(mock, origin, arguments, superCall);
-        }
-    }
-
-    @RuntimeType
-    public static Object interceptAbstract(@Identifier String identifier,
-                                           @This Object mock,
-                                           @StubValue Object stubValue,
-                                           @Origin Method origin,
-                                           @AllArguments Object[] arguments) throws Throwable {
-        MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier, mock);
-        if (dispatcher == null) {
-            return stubValue;
-        } else {
-            return dispatcher.handle(mock, origin, arguments, stubValue);
         }
     }
 
