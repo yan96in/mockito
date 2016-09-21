@@ -56,7 +56,9 @@ class SubclassBytecodeGenerator implements BytecodeGenerator {
                            .define("type", features.mockedType)
                            .build())
                          .implement(new ArrayList<Type>(features.interfaces))
-                         .method(shallow ? isAbstract().or(isNative()) : any())
+                         .method(shallow
+                                 ? isAbstract().or(isNative()).and(not(isHashCode().or(isEquals())))
+                                 : any())
                            .intercept(implementation)
                            .transform(Transformer.ForMethod.withModifiers(SynchronizationState.PLAIN))
                            .attribute(MethodAttributeAppender.ForInstrumentedMethod.INCLUDING_RECEIVER)
