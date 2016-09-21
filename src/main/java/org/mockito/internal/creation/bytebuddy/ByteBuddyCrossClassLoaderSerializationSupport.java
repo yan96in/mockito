@@ -29,6 +29,7 @@ import org.mockito.internal.configuration.plugins.Plugins;
 import org.mockito.internal.util.MockUtil;
 import org.mockito.mock.MockCreationSettings;
 import org.mockito.mock.MockName;
+import org.mockito.mock.SerializableMode;
 
 /**
  * This is responsible for serializing a mock, it is enabled if the mock is implementing {@link Serializable}.
@@ -277,7 +278,7 @@ class ByteBuddyCrossClassLoaderSerializationSupport implements Serializable {
             // create the Mockito mock class before it can even be deserialized
 
             Class<?> proxyClass = ((SubclassByteBuddyMockMaker) Plugins.getMockMaker())
-                    .createProxyClass(withMockFeatures(typeToMock, extraInterfaces, true));
+                    .createProxyClass(withMockFeatures(typeToMock, extraInterfaces, SerializableMode.ACROSS_CLASSLOADERS));
 
             hackClassNameToMatchNewlyCreatedClass(desc, proxyClass);
             return proxyClass;

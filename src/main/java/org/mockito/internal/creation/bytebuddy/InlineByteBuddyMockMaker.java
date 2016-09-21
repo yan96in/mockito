@@ -75,7 +75,7 @@ public class InlineByteBuddyMockMaker implements MockMaker {
         return MockFeatures.withMockFeatures(
                 settings.getTypeToMock(),
                 settings.getExtraInterfaces(),
-                settings.getSerializableMode() == SerializableMode.ACROSS_CLASSLOADERS
+                settings.getSerializableMode()
         );
     }
 

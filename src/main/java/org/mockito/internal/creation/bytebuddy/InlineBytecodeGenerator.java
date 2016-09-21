@@ -11,6 +11,7 @@ import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.TargetMethodAnnotationDrivenBinder;
 import net.bytebuddy.utility.RandomString;
 import org.mockito.exceptions.base.MockitoException;
+import org.mockito.mock.SerializableMode;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
@@ -98,7 +99,9 @@ public class InlineBytecodeGenerator implements BytecodeGenerator, ClassFileTran
             }
         }
         Class<? extends T> mockedType = features.mockedType;
-        if (!features.interfaces.isEmpty() || features.crossClassLoaderSerializable || Modifier.isAbstract(features.mockedType.getModifiers())) {
+        if (!features.interfaces.isEmpty()
+                || features.serializableMode != SerializableMode.NONE
+                || Modifier.isAbstract(features.mockedType.getModifiers())) {
             mockedType = subclassEngine.mockClass(features);
         }
         return mockedType;
@@ -119,7 +122,10 @@ public class InlineBytecodeGenerator implements BytecodeGenerator, ClassFileTran
                             Class<?> classBeingRedefined,
                             ProtectionDomain protectionDomain,
                             byte[] classfileBuffer) throws IllegalClassFormatException {
-        if (classBeingRedefined == null || !mocked.contains(classBeingRedefined) || EXCLUDES.contains(classBeingRedefined)) {
+        if (classBeingRedefined == null
+                || classBeingRedefined.getName().equals("sun.reflect.Reflection")
+                || !mocked.contains(classBeingRedefined)
+                || EXCLUDES.contains(classBeingRedefined)) {
             return null;
         } else {
             try {

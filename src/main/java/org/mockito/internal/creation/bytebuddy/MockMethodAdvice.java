@@ -22,8 +22,8 @@ public class MockMethodAdvice extends MockMethodDispatcher {
                                      @Advice.This Object mock,
                                      @Advice.Origin Method origin,
                                      @Advice.BoxedArguments Object[] arguments) throws Throwable {
-        MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier);
-        if (dispatcher == null) {
+        MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier, mock);
+        if (dispatcher == null || !dispatcher.isMock(mock)) {
             return null;
         } else {
             return dispatcher.handle(mock, origin, arguments);
@@ -45,7 +45,7 @@ public class MockMethodAdvice extends MockMethodDispatcher {
                                    @SuperCall Callable<?> superCall,
                                    @Origin Method origin,
                                    @AllArguments Object[] arguments) throws Throwable {
-        MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier);
+        MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier, mock);
         if (dispatcher == null) {
             return stubValue;
         } else {
@@ -59,7 +59,7 @@ public class MockMethodAdvice extends MockMethodDispatcher {
                                            @StubValue Object stubValue,
                                            @Origin Method origin,
                                            @AllArguments Object[] arguments) throws Throwable {
-        MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier);
+        MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier, mock);
         if (dispatcher == null) {
             return stubValue;
         } else {
@@ -142,7 +142,7 @@ public class MockMethodAdvice extends MockMethodDispatcher {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         private static boolean enter(@Identifier String id,
                                      @Advice.This Object self) {
-            MockMethodDispatcher dispatcher = MockMethodDispatcher.get(id);
+            MockMethodDispatcher dispatcher = MockMethodDispatcher.get(id, self);
             return dispatcher != null && dispatcher.isMock(self);
         }
 
@@ -161,7 +161,7 @@ public class MockMethodAdvice extends MockMethodDispatcher {
         @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
         private static boolean enter(@Identifier String identifier,
                                      @Advice.This Object self) {
-            MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier);
+            MockMethodDispatcher dispatcher = MockMethodDispatcher.get(identifier, self);
             return dispatcher != null && dispatcher.isMock(self);
         }
 

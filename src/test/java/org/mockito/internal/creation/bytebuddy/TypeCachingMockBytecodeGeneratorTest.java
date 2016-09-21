@@ -2,6 +2,7 @@ package org.mockito.internal.creation.bytebuddy;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.mock.SerializableMode;
 
 import java.lang.management.ManagementFactory;
 import java.lang.ref.WeakReference;
@@ -33,7 +34,7 @@ public class TypeCachingMockBytecodeGeneratorTest {
         Class<?> the_mock_type = cachingMockBytecodeGenerator.mockClass(withMockFeatures(
                 classloader_with_life_shorter_than_cache.loadClass("foo.Bar"),
                 Collections.<Class<?>>emptySet(),
-                false
+                SerializableMode.NONE
         ));
 
         assertThat(cachingMockBytecodeGenerator.avoidingClassLeakageCache).hasSize(1);
@@ -62,13 +63,13 @@ public class TypeCachingMockBytecodeGeneratorTest {
         Class<?> the_mock_type = cachingMockBytecodeGenerator.mockClass(withMockFeatures(
                         classloader_with_life_shorter_than_cache.loadClass("foo.Bar"),
                         Collections.<Class<?>>emptySet(),
-                        false
+                        SerializableMode.NONE
                 ));
 
         Class<?> other_mock_type = cachingMockBytecodeGenerator.mockClass(withMockFeatures(
                 classloader_with_life_shorter_than_cache.loadClass("foo.Bar"),
                 Collections.<Class<?>>emptySet(),
-                false
+                SerializableMode.NONE
         ));
 
         assertThat(other_mock_type).isSameAs(the_mock_type);

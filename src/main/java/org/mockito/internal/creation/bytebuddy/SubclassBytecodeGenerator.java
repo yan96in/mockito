@@ -17,6 +17,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 import org.mockito.internal.creation.bytebuddy.ByteBuddyCrossClassLoaderSerializationSupport.CrossClassLoaderSerializableMock;
 import org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.DispatcherDefaultingToRealMethod;
 import org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.MockAccess;
+import org.mockito.mock.SerializableMode;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ class SubclassBytecodeGenerator implements BytecodeGenerator {
                          .method(isEquals())
                            .intercept(to(MockMethodInterceptor.ForEquals.class));
         }
-        if (features.crossClassLoaderSerializable) {
+        if (features.serializableMode == SerializableMode.ACROSS_CLASSLOADERS) {
             builder = builder.implement(CrossClassLoaderSerializableMock.class)
                              .intercept(to(MockMethodInterceptor.ForWriteReplace.class));
         }

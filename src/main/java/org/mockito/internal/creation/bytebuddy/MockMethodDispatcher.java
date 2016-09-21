@@ -9,8 +9,12 @@ public abstract class MockMethodDispatcher {
 
     private static final ConcurrentMap<String, MockMethodDispatcher> INSTANCE = new ConcurrentHashMap<String, MockMethodDispatcher>();
 
-    public static MockMethodDispatcher get(String identifier) {
-        return INSTANCE.get(identifier);
+    public static MockMethodDispatcher get(String identifier, Object mock) {
+        if (mock == INSTANCE) { // Avoid endless loop if ConcurrentHashMap was redefined to check for being a mock.
+            return null;
+        } else {
+            return INSTANCE.get(identifier);
+        }
     }
 
     public static void set(String identifier, MockMethodDispatcher dispatcher) {
