@@ -37,8 +37,10 @@ public class InlineByteBuddyMockMaker implements MockMaker {
             boot.deleteOnExit();
             JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(boot));
             try {
-                outputStream.putNextEntry(new JarEntry(MockMethodDispatcher.class.getName().replace('.', '/') + ".class"));
-                outputStream.write(ClassFileLocator.ForClassLoader.read(MockMethodDispatcher.class).resolve());
+                outputStream.putNextEntry(new JarEntry("org/mockito/internal/creation/bytebuddy/MockMethodDispatcher.class"));
+                outputStream.write(ClassFileLocator.ForClassLoader.of(InlineByteBuddyMockMaker.class.getClassLoader())
+                        .locate("org.mockito.internal.creation.bytebuddy.MockMethodDispatcher")
+                        .resolve());
                 outputStream.closeEntry();
             } finally {
                 outputStream.close();

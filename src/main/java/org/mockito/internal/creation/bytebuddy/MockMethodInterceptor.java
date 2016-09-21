@@ -19,6 +19,7 @@ public class MockMethodInterceptor implements Serializable {
     private static final long serialVersionUID = 7152947254057253027L;
 
     final InternalMockHandler handler;
+
     private final MockCreationSettings mockCreationSettings;
 
     private final ByteBuddyCrossClassLoaderSerializationSupport serializationSupport;
@@ -30,9 +31,9 @@ public class MockMethodInterceptor implements Serializable {
     }
 
     Object doIntercept(Object mock,
-                               Method invokedMethod,
-                               Object[] arguments,
-                               InterceptedInvocation.SuperMethod superMethod) throws Throwable {
+                       Method invokedMethod,
+                       Object[] arguments,
+                       InterceptedInvocation.SuperMethod superMethod) throws Throwable {
         return handler.handle(new InterceptedInvocation(
                 mock,
                 createMockitoMethod(invokedMethod),
@@ -59,25 +60,30 @@ public class MockMethodInterceptor implements Serializable {
     }
 
     public static class ForHashCode {
+
         public static int doIdentityHashCode(@This Object thiz) {
             return System.identityHashCode(thiz);
         }
     }
 
     public static class ForEquals {
+
         public static boolean doIdentityEquals(@This Object thiz, @Argument(0) Object other) {
             return thiz == other;
         }
     }
 
     public static class ForWriteReplace {
+
         public static Object doWriteReplace(@This MockAccess thiz) throws ObjectStreamException {
             return thiz.getMockitoInterceptor().getSerializationSupport().writeReplace(thiz);
         }
     }
 
     public interface MockAccess {
+
         MockMethodInterceptor getMockitoInterceptor();
+
         void setMockitoInterceptor(MockMethodInterceptor mockMethodInterceptor);
     }
 

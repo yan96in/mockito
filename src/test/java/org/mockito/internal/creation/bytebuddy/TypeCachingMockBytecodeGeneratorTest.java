@@ -15,7 +15,7 @@ import static org.mockito.internal.creation.bytebuddy.MockFeatures.withMockFeatu
 import static org.mockitoutil.ClassLoaders.inMemoryClassLoader;
 import static org.mockitoutil.SimpleClassGenerator.makeMarkerInterface;
 
-public class CachingMockBytecodeGeneratorTest {
+public class TypeCachingMockBytecodeGeneratorTest {
 
     @Before
     public void ensure_disable_gc_is_activated() throws Exception {

@@ -4,6 +4,7 @@
  */
 package org.mockito.internal.stubbing.defaultanswers;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Iterator;
@@ -92,12 +93,15 @@ public class ReturnsGenericDeepStubsTest {
     }
 
     @Test
+//    @Ignore // TODO: StackOverflow
     public void will_return_default_value_on_non_mockable_nested_generic() throws Exception {
         GenericsNest<?> genericsNest = mock(GenericsNest.class, RETURNS_DEEP_STUBS);
         ListOfInteger listOfInteger = mock(ListOfInteger.class, RETURNS_DEEP_STUBS);
         AnotherListOfInteger anotherListOfInteger = mock(AnotherListOfInteger.class, RETURNS_DEEP_STUBS);
 
-        assertThat(genericsNest.returningNonMockableNestedGeneric().keySet().iterator().next()).isNull();
+        Iterator<?> iterator = genericsNest.returningNonMockableNestedGeneric().keySet().iterator();
+
+        assertThat(iterator.next()).isNull();
         assertThat(listOfInteger.get(25)).isEqualTo(0);
         assertThat(anotherListOfInteger.get(25)).isEqualTo(0);
     }

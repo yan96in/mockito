@@ -2,23 +2,24 @@ package org.mockito.internal.creation.bytebuddy;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public abstract class MockMethodDispatcher {
 
-    private static final AtomicReference<MockMethodDispatcher> INSTANCE = new AtomicReference<MockMethodDispatcher>();
+    private static final ConcurrentMap<String, MockMethodDispatcher> INSTANCE = new ConcurrentHashMap<String, MockMethodDispatcher>();
 
-    public static MockMethodDispatcher get() {
-        return INSTANCE.get();
+    public static MockMethodDispatcher get(String identifier) {
+        return INSTANCE.get(identifier);
     }
 
-    public static void set(MockMethodDispatcher dispatcher) {
-        if (INSTANCE.getAndSet(dispatcher) != null) {
-            System.err.println("Overriding previous dispatcher!"); // TODO
-        }
+    public static void set(String identifier, MockMethodDispatcher dispatcher) {
+        INSTANCE.putIfAbsent(identifier, dispatcher);
     }
 
-    public abstract Callable<?> handle(Object mock, Class<?> origin, String signature, Object[] arguments) throws Throwable;
+    public abstract Callable<?> handle(Object instance, Class<?> origin, String signature, Object[] arguments) throws Throwable;
 
-    public abstract Object handle(Object mock, Method origin, Object[] arguments, Object fallback) throws Throwable;
+    public abstract Object handle(Object instance, Method origin, Object[] arguments, Object fallback) throws Throwable;
+
+    public abstract boolean isMock(Object instance);
 }

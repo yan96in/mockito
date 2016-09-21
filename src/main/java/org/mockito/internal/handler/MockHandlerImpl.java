@@ -45,6 +45,7 @@ public class MockHandlerImpl<T> implements InternalMockHandler<T> {
         this.invocationContainerImpl = new InvocationContainerImpl( mockSettings);
     }
 
+    @Override
     public Object handle(Invocation invocation) throws Throwable {
         if (invocationContainerImpl.hasAnswersForStubbing()) {
             // stubbing voids with doThrow() or doAnswer() style

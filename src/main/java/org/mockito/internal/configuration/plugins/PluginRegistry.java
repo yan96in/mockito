@@ -12,8 +12,8 @@ class PluginRegistry {
             = new PluginLoader(new DefaultPluginSwitch()).loadPlugin(PluginSwitch.class, DefaultPluginSwitch.class.getName());
 
     private final MockMaker mockMaker
-            = new PluginLoader(pluginSwitch).loadPlugin(MockMaker.class, "org.mockito.internal.creation.bytebuddy.SubclassByteBuddyMockMaker");
-            //= new PluginLoader(pluginSwitch).loadPlugin(MockMaker.class, "org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker");
+//            = new PluginLoader(pluginSwitch).loadPlugin(MockMaker.class, "org.mockito.internal.creation.bytebuddy.SubclassByteBuddyMockMaker");
+            = new PluginLoader(pluginSwitch).loadPlugin(MockMaker.class, "org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker");
 
     private final StackTraceCleanerProvider stackTraceCleanerProvider
             = new PluginLoader(pluginSwitch).loadPlugin(StackTraceCleanerProvider.class, "org.mockito.internal.exceptions.stacktrace.DefaultStackTraceCleanerProvider");

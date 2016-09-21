@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.mockito.internal.creation.MockSettingsImpl;
 import org.mockito.internal.handler.MockHandlerImpl;
 import org.mockito.internal.stubbing.answers.Returns;
+import org.mockito.internal.stubbing.defaultanswers.ReturnsDeepStubs;
 import org.mockito.mock.MockCreationSettings;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +43,13 @@ public class InliningByteBuddyMockMakerTest extends AbstractByteBuddyMockMakerTe
         assertThat(((SampleInterface) proxy).bar()).isEqualTo("bar");
     }
 
+    @Test
+    public void should_create_mock_from_enum() throws Exception {
+        MockCreationSettings<EnumClass> settings = settingsFor(EnumClass.class);
+        EnumClass proxy = mockMaker.createMock(settings, new MockHandlerImpl<EnumClass>(settings));
+        assertThat(proxy.foo()).isEqualTo("bar");
+    }
+
     private static <T> MockCreationSettings<T> settingsFor(Class<T> type, Class<?>... extraInterfaces) {
         MockSettingsImpl<T> mockSettings = new MockSettingsImpl<T>();
         mockSettings.setTypeToMock(type);
@@ -51,6 +59,15 @@ public class InliningByteBuddyMockMakerTest extends AbstractByteBuddyMockMakerTe
     }
 
     private static final class FinalClass {
+
+        public String foo() {
+            return "foo";
+        }
+    }
+
+    private enum EnumClass {
+
+        INSTANCE;
 
         public String foo() {
             return "foo";

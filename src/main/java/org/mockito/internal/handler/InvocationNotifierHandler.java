@@ -31,6 +31,7 @@ class InvocationNotifierHandler<T> implements MockHandler, InternalMockHandler<T
         this.invocationListeners = settings.getInvocationListeners();
     }
 
+    @Override
     public Object handle(Invocation invocation) throws Throwable {
         try {
             Object returnedValue = mockHandler.handle(invocation);
