@@ -7,12 +7,13 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.scaffold.TypeValidation;
 import net.bytebuddy.implementation.Implementation;
-import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.TargetMethodAnnotationDrivenBinder;
+import net.bytebuddy.implementation.bind.annotation.This;
 import net.bytebuddy.utility.RandomString;
 import org.mockito.exceptions.base.MockitoException;
 import org.mockito.mock.SerializableMode;
 
+import java.io.ObjectStreamException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
@@ -24,7 +25,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import static net.bytebuddy.implementation.MethodDelegation.to;
 import static net.bytebuddy.matcher.ElementMatchers.*;
+import static net.bytebuddy.implementation.bind.annotation.TargetMethodAnnotationDrivenBinder.ParameterBinder.ForFixedValue.OfConstant.of;
 
 public class InlineBytecodeGenerator implements BytecodeGenerator, ClassFileTransformer {
 
@@ -59,7 +62,8 @@ public class InlineBytecodeGenerator implements BytecodeGenerator, ClassFileTran
         mocked = new WeakConcurrentSet<Class<?>>(WeakConcurrentSet.Cleaner.INLINE);
         advice = new MockMethodAdvice(mocks);
         identifier = RandomString.make();
-        subclassEngine = new TypeCachingBytecodeGenerator(new SubclassBytecodeGenerator(), false);
+        subclassEngine = new TypeCachingBytecodeGenerator(new SubclassBytecodeGenerator(to(MockMethodAdvice.ForWriteReplace.class)
+                .appendParameterBinder(of(MockMethodAdvice.Identifier.class, identifier)), isAbstract().or(isNative())), false);
         MockMethodDispatcher.set(identifier, advice);
         instrumentation.addTransformer(this, true);
     }
@@ -121,7 +125,6 @@ public class InlineBytecodeGenerator implements BytecodeGenerator, ClassFileTran
                             ProtectionDomain protectionDomain,
                             byte[] classfileBuffer) throws IllegalClassFormatException {
         if (classBeingRedefined == null
-                || classBeingRedefined.getName().equals("sun.reflect.Reflection")
                 || !mocked.contains(classBeingRedefined)
                 || EXCLUDES.contains(classBeingRedefined)) {
             return null;

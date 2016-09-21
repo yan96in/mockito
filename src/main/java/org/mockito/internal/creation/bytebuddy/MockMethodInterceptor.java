@@ -80,13 +80,6 @@ public class MockMethodInterceptor implements Serializable {
         }
     }
 
-    public interface MockAccess {
-
-        MockMethodInterceptor getMockitoInterceptor();
-
-        void setMockitoInterceptor(MockMethodInterceptor mockMethodInterceptor);
-    }
-
     public static class DispatcherDefaultingToRealMethod {
 
         @RuntimeType

@@ -2,7 +2,10 @@ package org.mockito.internal.creation.bytebuddy;
 
 import com.blogspot.mydailyjava.weaklockfree.WeakConcurrentMap;
 import net.bytebuddy.asm.Advice;
+import net.bytebuddy.implementation.bind.annotation.This;
+import org.mockito.internal.configuration.plugins.Plugins;
 
+import java.io.ObjectStreamException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
@@ -10,7 +13,7 @@ import java.util.concurrent.Callable;
 
 public class MockMethodAdvice extends MockMethodDispatcher {
 
-    private final WeakConcurrentMap<Object, MockMethodInterceptor> interceptors;
+    final WeakConcurrentMap<Object, MockMethodInterceptor> interceptors;
 
     public MockMethodAdvice(WeakConcurrentMap<Object, MockMethodInterceptor> interceptors) {
         this.interceptors = interceptors;
@@ -143,6 +146,18 @@ public class MockMethodAdvice extends MockMethodDispatcher {
             if (skipped) {
                 equals = self == other;
             }
+        }
+    }
+
+    public static class ForWriteReplace {
+
+        public static Object doWriteReplace(@Identifier String identifier,
+                                            @This MockAccess thiz) throws ObjectStreamException {
+            MockMethodAdvice mockMethodAdvice = (MockMethodAdvice) MockMethodDispatcher.get(identifier, thiz);
+            if (mockMethodAdvice != null) {
+                mockMethodAdvice.interceptors.put(thiz, thiz.getMockitoInterceptor());
+            }
+            return thiz.getMockitoInterceptor().getSerializationSupport().writeReplace(thiz);
         }
     }
 

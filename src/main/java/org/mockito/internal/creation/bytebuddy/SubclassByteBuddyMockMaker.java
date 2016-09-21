@@ -3,7 +3,6 @@ package org.mockito.internal.creation.bytebuddy;
 import org.mockito.exceptions.base.MockitoException;
 import org.mockito.internal.InternalMockHandler;
 import org.mockito.internal.configuration.plugins.Plugins;
-import org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.MockAccess;
 import org.mockito.internal.creation.instance.Instantiator;
 import org.mockito.invocation.MockHandler;
 import org.mockito.mock.MockCreationSettings;

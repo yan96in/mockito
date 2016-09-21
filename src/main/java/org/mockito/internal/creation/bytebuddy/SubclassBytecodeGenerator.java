@@ -5,26 +5,27 @@ import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.modifier.SynchronizationState;
 import net.bytebuddy.dynamic.DynamicType;
-import net.bytebuddy.dynamic.Transformer;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.dynamic.loading.MultipleParentClassLoader;
 import net.bytebuddy.dynamic.scaffold.TypeValidation;
 import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.Implementation;
-import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.implementation.attribute.MethodAttributeAppender;
 import net.bytebuddy.matcher.ElementMatcher;
 import org.mockito.internal.creation.bytebuddy.ByteBuddyCrossClassLoaderSerializationSupport.CrossClassLoaderSerializableMock;
 import org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.DispatcherDefaultingToRealMethod;
-import org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.MockAccess;
 import org.mockito.mock.SerializableMode;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Random;
 
+import static java.lang.Thread.currentThread;
+import static javafx.scene.input.KeyCode.M;
+import static javafx.scene.input.KeyCode.T;
 import static net.bytebuddy.description.modifier.Visibility.PRIVATE;
+import static net.bytebuddy.dynamic.Transformer.ForMethod.withModifiers;
 import static net.bytebuddy.implementation.MethodDelegation.to;
+import static net.bytebuddy.implementation.attribute.MethodAttributeAppender.ForInstrumentedMethod.INCLUDING_RECEIVER;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 class SubclassBytecodeGenerator implements BytecodeGenerator {
@@ -32,7 +33,16 @@ class SubclassBytecodeGenerator implements BytecodeGenerator {
     private final ByteBuddy byteBuddy;
     private final Random random;
 
+    private final Implementation writeReplace;
+    private final ElementMatcher<? super MethodDescription> matcher;
+
     public SubclassBytecodeGenerator() {
+        this(to(MockMethodInterceptor.ForWriteReplace.class), any());
+    }
+
+    public SubclassBytecodeGenerator(Implementation writeReplace, ElementMatcher<? super MethodDescription> matcher) {
+        this.writeReplace = writeReplace;
+        this.matcher = matcher;
         byteBuddy = new ByteBuddy().with(TypeValidation.DISABLED);
         random = new Random();
     }
@@ -48,10 +58,10 @@ class SubclassBytecodeGenerator implements BytecodeGenerator {
                            .define("type", features.mockedType)
                            .build())
                          .implement(new ArrayList<Type>(features.interfaces))
-                         .method(any())
-                           .intercept(MethodDelegation.to(DispatcherDefaultingToRealMethod.class))
-                           .transform(Transformer.ForMethod.withModifiers(SynchronizationState.PLAIN))
-                           .attribute(MethodAttributeAppender.ForInstrumentedMethod.INCLUDING_RECEIVER)
+                         .method(matcher)
+                           .intercept(to(DispatcherDefaultingToRealMethod.class))
+                           .transform(withModifiers(SynchronizationState.PLAIN))
+                           .attribute(INCLUDING_RECEIVER)
                          .method(isHashCode())
                            .intercept(to(MockMethodInterceptor.ForHashCode.class))
                          .method(isEquals())
@@ -62,13 +72,13 @@ class SubclassBytecodeGenerator implements BytecodeGenerator {
                            .intercept(FieldAccessor.ofBeanProperty());
         if (features.serializableMode == SerializableMode.ACROSS_CLASSLOADERS) {
             builder = builder.implement(CrossClassLoaderSerializableMock.class)
-                             .intercept(to(MockMethodInterceptor.ForWriteReplace.class));
+                             .intercept(writeReplace);
         }
         return builder.make()
                       .load(new MultipleParentClassLoader.Builder()
                               .append(features.mockedType)
                               .append(features.interfaces)
-                              .append(Thread.currentThread().getContextClassLoader())
+                              .append(currentThread().getContextClassLoader())
                               .append(MockAccess.class, DispatcherDefaultingToRealMethod.class)
                               .append(MockMethodInterceptor.class,
                                       MockMethodInterceptor.ForHashCode.class,

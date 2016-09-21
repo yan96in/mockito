@@ -62,7 +62,7 @@ public class SpyingOnInterfacesTest extends TestBase {
         }
     }
 
-    @Test
+    @Test //TODO: Rafael
     public void shouldAllowDelegatingToDefaultMethod() throws Exception {
         assumeTrue(ClassFileVersion.ofThisVm().isAtLeast(ClassFileVersion.JAVA_V8));
 
@@ -83,7 +83,7 @@ public class SpyingOnInterfacesTest extends TestBase {
         type.getMethod("foo").invoke(verify(object));
     }
 
-    @Test ///TODO: Rafael
+    @Test //TODO: Rafael
     public void shouldAllowSpyingOnDefaultMethod() throws Exception {
         assumeTrue(ClassFileVersion.ofThisVm().isAtLeast(ClassFileVersion.JAVA_V8));
 

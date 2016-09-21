@@ -64,10 +64,11 @@ public class InlineByteBuddyMockMaker implements MockMaker {
         Instantiator instantiator = Plugins.getInstantiatorProvider().getInstantiator(settings);
         try {
             T instance = instantiator.newInstance(type);
+            // TODO: Currently double mocking due to the "serialization fallback".
             MockMethodInterceptor mockMethodInterceptor = new MockMethodInterceptor(asInternalMockHandler(handler), settings);
             mocks.put(instance, mockMethodInterceptor);
-            if (instance instanceof MockMethodInterceptor.MockAccess) {
-                MockMethodInterceptor.MockAccess mockAccess = (MockMethodInterceptor.MockAccess) instance;
+            if (instance instanceof MockAccess) {
+                MockAccess mockAccess = (MockAccess) instance;
                 mockAccess.setMockitoInterceptor(mockMethodInterceptor);
             }
             return instance;
@@ -102,16 +103,11 @@ public class InlineByteBuddyMockMaker implements MockMaker {
 
     @Override
     public MockHandler getHandler(Object mock) {
-        if (mock instanceof MockMethodInterceptor.MockAccess) { // In case of serialization, this handler needs to be checked first.
-            MockMethodInterceptor.MockAccess mockAccess = (MockMethodInterceptor.MockAccess) mock;
-            return mockAccess.getMockitoInterceptor().getMockHandler();
+        MockMethodInterceptor interceptor = mocks.get(mock);
+        if (interceptor == null) {
+            return null;
         } else {
-            MockMethodInterceptor interceptor = mocks.get(mock);
-            if (interceptor == null) {
-                return null;
-            } else {
-                return interceptor.handler;
-            }
+            return interceptor.handler;
         }
     }
 
