@@ -11,6 +11,7 @@ import org.mockito.mock.SerializableMode;
 import org.mockito.plugins.MockMaker;
 
 import java.lang.reflect.Modifier;
+import java.util.Set;
 
 import static org.mockito.internal.util.StringJoiner.join;
 
@@ -48,6 +49,11 @@ public class SubclassByteBuddyMockMaker implements MockMaker {
         } catch (org.mockito.internal.creation.instance.InstantiationException e) {
             throw new MockitoException("Unable to create mock instance of type '" + mockedProxyType.getSuperclass().getSimpleName() + "'", e);
         }
+    }
+
+    @Override
+    public <T> Class<? extends T> createMockType(Class<T> mockedType, Set<Class<?>> interfaces, SerializableMode serializableMode) {
+        return cachingMockBytecodeGenerator.mockClass(MockFeatures.withMockFeatures(mockedType, interfaces, serializableMode));
     }
 
     <T> Class<? extends T> createProxyClass(MockFeatures<T> mockFeatures) {

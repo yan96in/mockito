@@ -277,8 +277,8 @@ class ByteBuddyCrossClassLoaderSerializationSupport implements Serializable {
 
             // create the Mockito mock class before it can even be deserialized
 
-            Class<?> proxyClass = ((SubclassByteBuddyMockMaker) Plugins.getMockMaker())
-                    .createProxyClass(withMockFeatures(typeToMock, extraInterfaces, SerializableMode.ACROSS_CLASSLOADERS));
+            Class<?> proxyClass = Plugins.getMockMaker()
+                    .createMockType(typeToMock, extraInterfaces, SerializableMode.ACROSS_CLASSLOADERS);
 
             hackClassNameToMatchNewlyCreatedClass(desc, proxyClass);
             return proxyClass;
