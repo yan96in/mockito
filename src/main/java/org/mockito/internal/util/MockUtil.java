@@ -30,7 +30,7 @@ public class MockUtil {
     }
 
     public static <T> T createMock(MockCreationSettings<T> settings) {
-        MockHandler mockHandler =  createMockHandler(settings);
+        MockHandler mockHandler = createMockHandler(settings);
 
         T mock = mockMaker.createMock(settings, mockHandler);
 

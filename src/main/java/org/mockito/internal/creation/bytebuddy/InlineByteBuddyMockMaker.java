@@ -20,6 +20,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 
+import static org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.EXCLUDES;
 import static org.mockito.internal.util.StringJoiner.join;
 
 public class InlineByteBuddyMockMaker implements MockMaker {
@@ -33,6 +34,9 @@ public class InlineByteBuddyMockMaker implements MockMaker {
     public InlineByteBuddyMockMaker() {
         try {
             instrumentation = ByteBuddyAgent.install();
+            if (!instrumentation.isRetransformClassesSupported()) {
+                throw new MockitoException("Current VM does not supprt retransformation");
+            }
             File boot = File.createTempFile("mockitoboot", "jar");
             boot.deleteOnExit();
             JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(boot));
@@ -105,16 +109,12 @@ public class InlineByteBuddyMockMaker implements MockMaker {
         return new TypeMockability() {
             @Override
             public boolean mockable() {
-                return instrumentation.isRetransformClassesSupported() && instrumentation.isModifiableClass(type);
+                return instrumentation.isRetransformClassesSupported() && instrumentation.isModifiableClass(type) && !EXCLUDES.contains(type);
             }
 
             @Override
             public String nonMockableReason() {
-                if (instrumentation.isRetransformClassesSupported()) {
-                    return "VM does not support redefinition of " + type;
-                } else {
-                    return "Current VM does not not support retransformation";
-                }
+                return "VM does not not support retransformation of given type";
             }
         };
     }

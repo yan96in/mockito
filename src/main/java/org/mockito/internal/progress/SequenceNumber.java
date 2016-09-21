@@ -4,11 +4,13 @@
  */
 package org.mockito.internal.progress;
 
-public class SequenceNumber {
-    
-    private static int sequenceNumber = 1;
+import java.util.concurrent.atomic.AtomicInteger;
 
-    public static synchronized int next() {
-        return sequenceNumber++;
+public class SequenceNumber {
+
+    private static final AtomicInteger SEQUENCE_NUMBER = new AtomicInteger();
+
+    public static int next() {
+        return SEQUENCE_NUMBER.getAndIncrement();
     }
 }

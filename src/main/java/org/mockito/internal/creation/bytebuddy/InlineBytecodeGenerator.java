@@ -18,6 +18,7 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -25,6 +26,8 @@ import java.util.Set;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
 public class InlineBytecodeGenerator implements BytecodeGenerator, ClassFileTransformer {
+
+    static final Set<Class<?>> EXCLUDES = new HashSet<Class<?>>(Arrays.asList(Class.class, String.class));
 
     private final Instrumentation instrumentation;
 
@@ -107,7 +110,7 @@ public class InlineBytecodeGenerator implements BytecodeGenerator, ClassFileTran
                             Class<?> classBeingRedefined,
                             ProtectionDomain protectionDomain,
                             byte[] classfileBuffer) throws IllegalClassFormatException {
-        if (classBeingRedefined == null || !mocked.contains(classBeingRedefined)) {
+        if (classBeingRedefined == null || !mocked.contains(classBeingRedefined) || EXCLUDES.contains(classBeingRedefined)) {
             return null;
         } else {
             try {
