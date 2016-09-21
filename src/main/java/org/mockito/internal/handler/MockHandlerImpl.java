@@ -91,7 +91,7 @@ public class MockHandlerImpl<T> implements InternalMockHandler<T> {
         if (stubbedInvocation != null) {
             stubbedInvocation.captureArgumentsFrom(invocation);
             return stubbedInvocation.answer(invocation);
-        } else { // TODO: Next statement stack overflow error
+        } else {
             Object ret = mockSettings.getDefaultAnswer().answer(invocation);
             new AnswersValidator().validateDefaultAnswerReturnedValue(invocation, ret);
 

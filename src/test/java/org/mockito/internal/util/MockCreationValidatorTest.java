@@ -58,7 +58,6 @@ public class MockCreationValidatorTest {
     }
 
     @Test
-    @Ignore // TODO: Not aware of final types
     public void should_fail_when_type_not_mockable() throws Exception {
         try {
             validator.validateType(long.class);

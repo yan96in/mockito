@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Modifier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -105,16 +106,35 @@ public class InlineByteBuddyMockMaker implements MockMaker {
     }
 
     @Override
+    public Class<?> getMockedType(Object mock) {
+        if (getHandler(mock) == null) {
+            return null;
+        }
+        MockedType mockedType = mock.getClass().getAnnotation(MockedType.class);
+        if (mockedType == null) {
+            return mock.getClass();
+        } else {
+            return mockedType.type();
+        }
+    }
+
+    @Override
     public TypeMockability isTypeMockable(final Class<?> type) {
         return new TypeMockability() {
             @Override
             public boolean mockable() {
-                return instrumentation.isRetransformClassesSupported() && instrumentation.isModifiableClass(type) && !EXCLUDES.contains(type);
+                return instrumentation.isModifiableClass(type) && !EXCLUDES.contains(type);
             }
 
             @Override
             public String nonMockableReason() {
-                return "VM does not not support retransformation of given type";
+                if (type.isPrimitive()) {
+                    return "primitive type";
+                }
+                if (EXCLUDES.contains(type)) {
+                    return "Cannot mock wrapper types, String.class or Class.class";
+                }
+                return "VM does not not support modification of given type";
             }
         };
     }

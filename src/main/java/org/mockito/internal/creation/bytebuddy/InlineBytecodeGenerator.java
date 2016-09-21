@@ -27,7 +27,16 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 
 public class InlineBytecodeGenerator implements BytecodeGenerator, ClassFileTransformer {
 
-    static final Set<Class<?>> EXCLUDES = new HashSet<Class<?>>(Arrays.asList(Class.class, String.class));
+    static final Set<Class<?>> EXCLUDES = new HashSet<Class<?>>(Arrays.asList(Class.class,
+            Boolean.class,
+            Byte.class,
+            Short.class,
+            Character.class,
+            Integer.class,
+            Long.class,
+            Float.class,
+            Double.class,
+            String.class));
 
     private final Instrumentation instrumentation;
 

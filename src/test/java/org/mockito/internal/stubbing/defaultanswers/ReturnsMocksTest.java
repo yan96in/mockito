@@ -6,6 +6,7 @@ package org.mockito.internal.stubbing.defaultanswers;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.internal.configuration.plugins.Plugins;
 import org.mockito.internal.util.MockUtil;
 import org.mockitoutil.TestBase;
 
@@ -36,9 +37,10 @@ public class ReturnsMocksTest extends TestBase {
     }
 
     @Test
-    @Ignore // TODO: Not aware of final types
-    public void should_return_null_for_final_class() throws Exception {
-        assertNull(values.returnValueFor(Baz.class));
+    public void should_return_null_for_final_class_if_unsupported() throws Exception {
+        if (!Plugins.getMockMaker().isTypeMockable(Baz.class).mockable()) {
+            assertNull(values.returnValueFor(Baz.class));
+        }
     }
 
     @Test

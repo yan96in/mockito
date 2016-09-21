@@ -44,7 +44,7 @@ public class SubclassByteBuddyMockMaker implements MockMaker {
                     "",
                     "You might experience classloading issues, please ask the mockito mailing-list.",
                     ""
-            ),cce);
+            ), cce);
         } catch (org.mockito.internal.creation.instance.InstantiationException e) {
             throw new MockitoException("Unable to create mock instance of type '" + mockedProxyType.getSuperclass().getSimpleName() + "'", e);
         }
@@ -53,7 +53,6 @@ public class SubclassByteBuddyMockMaker implements MockMaker {
     <T> Class<? extends T> createProxyClass(MockFeatures<T> mockFeatures) {
         return cachingMockBytecodeGenerator.mockClass(mockFeatures);
     }
-
 
     private static <T> MockFeatures<T> mockWithFeaturesFrom(MockCreationSettings<T> settings) {
         return MockFeatures.withMockFeatures(
@@ -88,6 +87,19 @@ public class SubclassByteBuddyMockMaker implements MockMaker {
     }
 
     @Override
+    public Class<?> getMockedType(Object mock) {
+        if (getHandler(mock) == null) {
+            return null;
+        }
+        MockedType mockedType = mock.getClass().getAnnotation(MockedType.class);
+        if (mockedType == null) {
+            return mock.getClass();
+        } else {
+            return mockedType.type();
+        }
+    }
+
+    @Override
     public void resetMock(Object mock, MockHandler newHandler, MockCreationSettings settings) {
         ((MockAccess) mock).setMockitoInterceptor(
                 new MockMethodInterceptor(asInternalMockHandler(newHandler), settings)
@@ -105,10 +117,10 @@ public class SubclassByteBuddyMockMaker implements MockMaker {
             @Override
             public String nonMockableReason() {
                 //TODO SF does not seem to have test coverage. What is the expected value when type mockable
-                if(type.isPrimitive()) {
+                if (type.isPrimitive()) {
                     return "primitive type";
                 }
-                if(Modifier.isFinal(type.getModifiers())) {
+                if (Modifier.isFinal(type.getModifiers())) {
                     return "final or anonymous class";
                 }
                 return join("not handled type");
@@ -126,5 +138,4 @@ public class SubclassByteBuddyMockMaker implements MockMaker {
         }
         return (InternalMockHandler<?>) handler;
     }
-
 }

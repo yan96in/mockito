@@ -64,7 +64,6 @@ public class MockUtil {
     }
 
     public static boolean isMock(Object mock) {
-        // double check to avoid classes that have the same interfaces, could be great to have a custom mockito field in the proxy instead of relying on instance fields
         return isMockitoMock(mock);
     }
 

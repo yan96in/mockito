@@ -11,12 +11,14 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.exceptions.base.MockitoException;
 import org.mockito.exceptions.misusing.NotAMockException;
+import org.mockito.internal.configuration.plugins.Plugins;
 import org.mockitoutil.TestBase;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static junit.framework.TestCase.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.withSettings;
 
 @SuppressWarnings("unchecked")
@@ -66,7 +68,7 @@ public class MockUtilTest extends TestBase {
         List<?> mock = Mockito.mock(List.class);
         MockUtil.maybeRedefineMockName(mock, "newName");
 
-        Assertions.assertThat(MockUtil.getMockName(mock).toString()).isEqualTo("newName");
+        assertThat(MockUtil.getMockName(mock).toString()).isEqualTo("newName");
     }
 
     @Test
@@ -74,7 +76,7 @@ public class MockUtilTest extends TestBase {
         List<?> mock = Mockito.mock(List.class, "original");
         MockUtil.maybeRedefineMockName(mock, "newName");
 
-        Assertions.assertThat(MockUtil.getMockName(mock).toString()).isEqualTo("original");
+        assertThat(MockUtil.getMockName(mock).toString()).isEqualTo("original");
     }
 
     final class FinalClass {}
@@ -82,9 +84,10 @@ public class MockUtilTest extends TestBase {
     interface SomeInterface {}
 
     @Test
-    @Ignore // TODO: Not aware of final types
     public void should_know_if_type_is_mockable() throws Exception {
-        assertFalse(MockUtil.typeMockabilityOf(FinalClass.class).mockable());
+        assertThat(MockUtil.typeMockabilityOf(FinalClass.class).mockable())
+                .isEqualTo(Plugins.getMockMaker().isTypeMockable(FinalClass.class).mockable());
+
         assertFalse(MockUtil.typeMockabilityOf(int.class).mockable());
 
         assertTrue(MockUtil.typeMockabilityOf(SomeClass.class).mockable());
