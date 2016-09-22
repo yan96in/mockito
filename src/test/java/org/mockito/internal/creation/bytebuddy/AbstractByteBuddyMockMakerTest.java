@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.internal.InternalMockHandler;
 import org.mockito.internal.creation.MockSettingsImpl;
-import org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.MockAccess;
 import org.mockito.internal.stubbing.InvocationContainer;
 import org.mockito.invocation.Invocation;
 import org.mockito.invocation.MockHandler;
@@ -105,7 +104,7 @@ public abstract class AbstractByteBuddyMockMakerTest {
                 .build();
 
         Class<?> mock_maker_class_loaded_fine_until = Class.forName(
-                "org.mockito.internal.creation.bytebuddy.ByteBuddyMockMaker",
+                "org.mockito.internal.creation.bytebuddy.SubclassByteBuddyMockMaker",
                 true,
                 classpath_with_objenesis
         );
